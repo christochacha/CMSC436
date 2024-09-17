@@ -1,0 +1,45 @@
+import pandas as pd
+import numpy as np
+from sklearn.metrics import confusion_matrix
+from sklearn.preprocessing import MinMaxScaler
+
+
+# File paths for the three .txt datasets
+file_paths = ['groupA.txt', 'groupB.txt', 'groupC.txt']
+
+# Function to calculate confusion matrix for each dataset
+def process_and_confusion(file_path):
+    # Step 1: Read the .txt file
+    df = pd.read_csv(file_path, sep=',', header=None, names=['Cost', 'Weight', 'Type'])
+
+    # Step 2: Separate features (Cost, Weight) and target (Type)
+    X = df[['Cost', 'Weight']].astype(float)  # Ensure the data is in float
+    y_true = df['Type'].astype(int)  # True labels
+    
+    # Step 3: Normalize the data (Min-Max Scaling)
+    min_max_scaler = MinMaxScaler()
+    X_min_max_scaled = min_max_scaler.fit_transform(X)
+    
+    # Step 4: Predict the labels using the linear separator equation
+    # Using y = (2/3)x + 0.167 as the decision boundary (example)
+    m = 2 / 3
+    b = 0.167
+    
+    # Prediction: for each point, classify based on y >= mx + b
+    y_pred = X_min_max_scaled[:, 1] >= (m * X_min_max_scaled[:, 0] + b)
+    y_pred = y_pred.astype(int)  # Convert boolean to integer (1 for big cars, 0 for small cars)
+
+    # Step 5: Generate confusion matrix
+    conf_matrix = confusion_matrix(y_true, y_pred, labels=[1, 0])  # [1: big car, 0: small car]
+    
+    # Print the confusion matrix
+    print(f"Confusion Matrix for {file_path}:")
+    print("True Positive (Big Car) | False Negative")
+    print(f"{conf_matrix[0][0]}                        | {conf_matrix[0][1]}")
+    print("False Positive          | True Negative (Small Car)")
+    print(f"{conf_matrix[1][0]}                        | {conf_matrix[1][1]}")
+    print("\n")
+
+# Process and generate confusion matrix for each dataset
+for file_path in file_paths:
+    process_and_confusion(file_path)
